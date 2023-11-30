@@ -1,4 +1,4 @@
-use crate::{unescape_into, unescaped_len, UnescapeError};
+use crate::{unescape_into, unescaped_len, UnescapeError, UnescapeIntoError};
 
 #[cfg(feature = "alloc")]
 use crate::unescape;
@@ -315,19 +315,19 @@ fn test_unescape_into() {
 #[rustfmt::skip]
 fn test_unescape_into_invalid() {
     let mut buf = [0u8; 128];
-    assert_eq!(unescape_into(&mut buf, br"hello\world"), Err(UnescapeError::InvalidEscape));
+    assert_eq!(unescape_into(&mut buf, br"hello\world"), Err(UnescapeIntoError::Unescape(UnescapeError::InvalidEscape)));
     let mut buf = [0u8; 128];
-    assert_eq!(unescape_into(&mut buf, br"hello\xworld"), Err(UnescapeError::InvalidHexHi));
+    assert_eq!(unescape_into(&mut buf, br"hello\xworld"), Err(UnescapeIntoError::Unescape(UnescapeError::InvalidHexHi)));
     let mut buf = [0u8; 128];
-    assert_eq!(unescape_into(&mut buf, br"hello\x1world"), Err(UnescapeError::InvalidHexLo));
+    assert_eq!(unescape_into(&mut buf, br"hello\x1world"), Err(UnescapeIntoError::Unescape(UnescapeError::InvalidHexLo)));
     let mut buf = [0u8; 128];
-    assert_eq!(unescape_into(&mut buf, b"hello\\x1\0world"), Err(UnescapeError::InvalidHexLo));
+    assert_eq!(unescape_into(&mut buf, b"hello\\x1\0world"), Err(UnescapeIntoError::Unescape(UnescapeError::InvalidHexLo)));
     let mut buf = [0u8; 128];
-    assert_eq!(unescape_into(&mut buf, br"hello\"), Err(UnescapeError::InvalidEscape));
+    assert_eq!(unescape_into(&mut buf, br"hello\"), Err(UnescapeIntoError::Unescape(UnescapeError::InvalidEscape)));
     let mut buf = [0u8; 128];
-    assert_eq!(unescape_into(&mut buf, br"hello\x"), Err(UnescapeError::InvalidHexHi));
+    assert_eq!(unescape_into(&mut buf, br"hello\x"), Err(UnescapeIntoError::Unescape(UnescapeError::InvalidHexHi)));
     let mut buf = [0u8; 128];
-    assert_eq!(unescape_into(&mut buf, br"hello\x1"), Err(UnescapeError::InvalidHexLo));
+    assert_eq!(unescape_into(&mut buf, br"hello\x1"), Err(UnescapeIntoError::Unescape(UnescapeError::InvalidHexLo)));
 }
 
 #[test]

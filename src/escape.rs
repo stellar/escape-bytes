@@ -19,10 +19,17 @@ where
     I::Item: Borrow<u8>,
 {
     let mut escaped = alloc::vec::Vec::<u8>::new();
-    for b in Escape::new(i.into_iter()) {
+    for b in Escape::new(i) {
         escaped.push(b);
     }
     escaped
+}
+
+/// Escape into error occurs when escaping into a slice cannot continue.
+#[derive(Debug, PartialEq, Eq)]
+pub enum EscapeIntoError {
+    /// Writing into the slice would write to a position that is out-of-bounds.
+    OutOfBounds,
 }
 
 /// Escape the bytes into the slice.
@@ -30,17 +37,26 @@ where
 /// See [crate] for the exact rules.
 ///
 /// Returns the number of bytes written to the slice.
-pub fn escape_into<I>(out: &mut [u8], i: I) -> usize
+///
+/// ## Errors
+///
+/// If the slice is not large enough to receive the escaped value. No
+/// information is provided to support continuing escaping into a new buffer
+/// from where it stops. Use the [`Escape`] iterator directly if that is needed.
+pub fn escape_into<I>(out: &mut [u8], i: I) -> Result<usize, EscapeIntoError>
 where
     I: IntoIterator,
     I::Item: Borrow<u8>,
 {
-    let mut count = 0;
-    for (idx, b) in Escape::new(i.into_iter()).enumerate() {
-        out[idx] = b;
+    let mut count = 0usize;
+    for (idx, b) in Escape::new(i).enumerate() {
+        let Some(v) = out.get_mut(idx) else {
+            return Err(EscapeIntoError::OutOfBounds);
+        };
+        *v = b;
         count += 1;
     }
-    count
+    Ok(count)
 }
 
 /// Returns the maximum escaped length of the given unescaped length.
@@ -53,9 +69,9 @@ pub const fn escaped_max_len(len: usize) -> Option<usize> {
 pub fn escaped_len<I>(i: I) -> usize
 where
     I: IntoIterator,
-    I::Item: Borrow<u8>,
+    Escape<I>: Iterator,
 {
-    Escape::new(i.into_iter()).count()
+    Escape::new(i).count()
 }
 
 /// Iterator that escapes the input iterator.
@@ -85,7 +101,7 @@ where
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
 enum Next {
     Input,
     Byte1(u8),
@@ -96,7 +112,6 @@ enum Next {
 impl<I> Escape<I>
 where
     I: IntoIterator,
-    I::Item: Borrow<u8>,
 {
     pub fn new(i: I) -> Self {
         Self {

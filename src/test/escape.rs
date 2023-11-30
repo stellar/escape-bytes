@@ -277,19 +277,20 @@ fn test_escape() {
 #[rustfmt::skip]
 fn test_escape_into() {
     let mut buf = [0u8; 128];
-    assert_eq!(escape_into(&mut buf, b""), 0);
+
+    assert_eq!(escape_into(&mut buf, b""), Ok(0));
     assert_eq!(buf, [0u8; 128]);
 
     let mut buf = [0u8; 128];
-    assert_eq!(escape_into(&mut buf, b"hello world"), 11);
+    assert_eq!(escape_into(&mut buf, b"hello world"), Ok(11));
     assert_eq!(buf.as_slice(), [br"hello world".as_slice(), &[0u8; 117]].concat());
 
     let mut buf = [0u8; 128];
-    assert_eq!(escape_into(&mut buf, b"hello\x1eworld"), 14);
+    assert_eq!(escape_into(&mut buf, b"hello\x1eworld"), Ok(14));
     assert_eq!(buf.as_slice(), [br"hello\x1eworld".as_slice(), &[0u8; 114]].concat());
 
     let mut buf = [0u8; 128];
-    assert_eq!(escape_into(&mut buf, b"hello\x28world"), 11);
+    assert_eq!(escape_into(&mut buf, b"hello\x28world"), Ok(11));
     assert_eq!(buf.as_slice(), [br"hello(world".as_slice(), &[0u8; 117]].concat());
 }
 

@@ -20,17 +20,26 @@ use core::borrow::Borrow;
 /// ```
 #[cfg(feature = "alloc")]
 #[cfg_attr(feature = "doc", doc(cfg(feature = "alloc")))]
-pub fn unescape<'i, I>(i: I) -> Result<alloc::vec::Vec<u8>, UnescapeError>
+pub fn unescape<I>(i: I) -> Result<alloc::vec::Vec<u8>, UnescapeError>
 where
     I: IntoIterator,
     I::Item: Borrow<u8>,
 {
     let mut escaped = alloc::vec::Vec::<u8>::new();
-    for b in Unescape::new(i.into_iter()) {
+    for b in Unescape::new(i) {
         let b = b?;
         escaped.push(b);
     }
     Ok(escaped)
+}
+
+/// Escape into error occurs when escaping into a slice cannot continue.
+#[derive(Debug, PartialEq, Eq)]
+pub enum UnescapeIntoError {
+    /// Writing into the slice would write to a position that is out-of-bounds.
+    OutOfBounds,
+    /// Occurs when encountering unexpected byte sequences.
+    Unescape(UnescapeError),
 }
 
 /// Unescape the bytes into the slice.
@@ -42,15 +51,18 @@ where
 /// ## Errors
 ///
 /// When encountering unexpected byte sequences.
-pub fn unescape_into<'i, I>(out: &mut [u8], i: I) -> Result<usize, UnescapeError>
+pub fn unescape_into<I>(out: &mut [u8], i: I) -> Result<usize, UnescapeIntoError>
 where
     I: IntoIterator,
     I::Item: Borrow<u8>,
 {
-    let mut count = 0;
-    for (idx, b) in Unescape::new(i.into_iter()).enumerate() {
-        let b = b?;
-        out[idx] = b;
+    let mut count = 0usize;
+    for (idx, b) in Unescape::new(i).enumerate() {
+        let b = b.map_err(UnescapeIntoError::Unescape)?;
+        let Some(v) = out.get_mut(idx) else {
+            return Err(UnescapeIntoError::OutOfBounds);
+        };
+        *v = b;
         count += 1;
     }
     Ok(count)
@@ -61,11 +73,12 @@ where
 /// ## Errors
 ///
 /// When encountering unexpected byte sequences.
-pub fn unescaped_len<'i, I>(i: I) -> Result<usize, UnescapeError>
+pub fn unescaped_len<I>(i: I) -> Result<usize, UnescapeError>
 where
-    I: IntoIterator<Item = &'i u8>,
+    I: IntoIterator,
+    I::Item: Borrow<u8>,
 {
-    Unescape::new(i.into_iter()).try_fold(0usize, |sum, result| {
+    Unescape::new(i).try_fold(0usize, |sum, result| {
         result?;
         Ok(sum + 1)
     })
@@ -96,10 +109,9 @@ where
     }
 }
 
-impl<'i, I> Unescape<I>
+impl<I> Unescape<I>
 where
     I: IntoIterator,
-    I::Item: Borrow<u8>,
 {
     pub fn new(i: I) -> Self {
         Self {
@@ -124,7 +136,7 @@ pub enum UnescapeError {
     InvalidHexLo,
 }
 
-impl<'i, I> Iterator for Unescape<I>
+impl<I> Iterator for Unescape<I>
 where
     I: IntoIterator,
     I::Item: Borrow<u8>,
