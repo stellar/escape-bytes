@@ -50,6 +50,10 @@ pub enum UnescapeIntoError {
 ///
 /// ## Errors
 ///
+/// If the slice is not large enough to receive the escaped value. No
+/// information is provided to support continuing escaping into a new buffer
+/// from where it stops. Use the [`Unescape`] iterator directly if that is needed.
+///
 /// When encountering unexpected byte sequences.
 pub fn unescape_into<I>(out: &mut [u8], i: I) -> Result<usize, UnescapeIntoError>
 where
