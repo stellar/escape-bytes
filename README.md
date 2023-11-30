@@ -34,4 +34,3 @@ assert_eq!(unescaped, b"hello\xc3world");
 ```
 
 License: Apache-2.0
->>>>>>> ce82c81 (Initial commit)
