@@ -281,7 +281,7 @@ fn test_unescape() {
 #[cfg(feature = "alloc")]
 #[test]
 #[rustfmt::skip]
-fn test_unescape_invalid() {
+fn test_unescape_error() {
     assert_eq!(unescape(br"hello\world"), Err(UnescapeError::InvalidEscape));
     assert_eq!(unescape(br"hello\xworld"), Err(UnescapeError::InvalidHexHi));
     assert_eq!(unescape(br"hello\x1world"), Err(UnescapeError::InvalidHexLo));
@@ -313,7 +313,9 @@ fn test_unescape_into() {
 
 #[test]
 #[rustfmt::skip]
-fn test_unescape_into_invalid() {
+fn test_unescape_into_error() {
+    let mut buf = [0u8; 10];
+    assert_eq!(unescape_into(&mut buf, b"hello\x28world"), Err(UnescapeIntoError::OutOfBounds));
     let mut buf = [0u8; 128];
     assert_eq!(unescape_into(&mut buf, br"hello\world"), Err(UnescapeIntoError::Unescape(UnescapeError::InvalidEscape)));
     let mut buf = [0u8; 128];
@@ -339,7 +341,7 @@ fn test_unescaped_len() {
 
 #[test]
 #[rustfmt::skip]
-fn test_unescaped_len_invalid() {
+fn test_unescaped_len_error() {
     assert_eq!(unescaped_len(br"hello\world"), Err(UnescapeError::InvalidEscape));
     assert_eq!(unescaped_len(br"hello\xworld"), Err(UnescapeError::InvalidHexHi));
     assert_eq!(unescaped_len(br"hello\x1world"), Err(UnescapeError::InvalidHexLo));
