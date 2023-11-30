@@ -33,7 +33,7 @@ jobs:
     - run: rustup update
     - run: rustup install nightly
     - run: rustup default stable
-    - uses: stellar/binaries@v12
+    - uses: stellar/binaries@v17
       with:
         name: cargo-hack
         version: 0.5.28
@@ -46,10 +46,14 @@ jobs:
     - uses: actions/checkout@v3
     - uses: stellar/actions/rust-cache@main
     - run: rustup update
-    - uses: stellar/binaries@v12
+    - uses: stellar/binaries@v17
       with:
         name: cargo-hack
         version: 0.5.28
+    - uses: stellar/binaries@v17
+      with:
+        name: cargo-fuzz
+        version: 0.11.2
     - run: make doc
 
   readme:
@@ -58,6 +62,10 @@ jobs:
     - uses: actions/checkout@v3
     - uses: stellar/actions/rust-cache@main
     - run: rustup update
+    - uses: stellar/binaries@v17
+      with:
+        name: cargo-readme
+        version: 3.3.1
     - run: make readme
     - run: git add -N . && git diff HEAD --exit-code
 
