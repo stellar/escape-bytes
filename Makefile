@@ -6,6 +6,8 @@ all: build test
 
 test:
 	cargo hack test --tests --feature-powerset --exclude-features docs
+	cargo hack test --doc --all-features
+	cargo +nightly fuzz run roundtrip -- -runs=0
 
 fuzz:
 	cargo +nightly fuzz run roundtrip
