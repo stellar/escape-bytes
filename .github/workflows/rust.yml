@@ -73,4 +73,4 @@ jobs:
 
   publish-dry-run:
     if: startsWith(github.head_ref, 'release/')
-    uses: stellar/actions/.github/workflows/rust-publish-dry-run.yml@7a75c53e421668833e48561ce9f359ad170fc6fb
+    uses: stellar/actions/.github/workflows/rust-publish-dry-run.yml@main
