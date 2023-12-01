@@ -37,6 +37,7 @@
 #![no_std]
 #![allow(clippy::module_name_repetitions)]
 
+#[cfg(feature = "alloc")]
 extern crate alloc;
 
 #[cfg(test)]
