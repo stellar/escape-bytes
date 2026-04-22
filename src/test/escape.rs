@@ -1,7 +1,7 @@
 use crate::{escape_into, escaped_len, escaped_max_len, EscapeIntoError};
 
 #[cfg(feature = "alloc")]
-use crate::escape;
+use crate::{escape, escaped, Escape};
 
 #[cfg(feature = "alloc")]
 #[allow(clippy::too_many_lines)]
@@ -312,4 +312,43 @@ fn test_escaped_len() {
     assert_eq!(escaped_len(b"hello world"), 11);
     assert_eq!(escaped_len(b"hello\\world"), 12);
     assert_eq!(escaped_len(b"hello\x1eworld"), 14);
+}
+
+#[cfg(feature = "alloc")]
+#[test]
+fn test_escape_display() {
+    assert_eq!(alloc::format!("{}", Escape::new(b"")), "");
+    assert_eq!(
+        alloc::format!("{}", Escape::new(b"hello world")),
+        "hello world",
+    );
+    assert_eq!(
+        alloc::format!("{}", Escape::new(b"hello\x1eworld")),
+        r"hello\x1eworld",
+    );
+    assert_eq!(
+        alloc::format!("Message: {}", Escape::new(b"hi\x1b[31m!")),
+        r"Message: hi\x1b[31m!",
+    );
+}
+
+#[cfg(feature = "alloc")]
+#[test]
+fn test_escaped_str_input() {
+    // `&str` accepted directly without `.as_bytes()`.
+    assert_eq!(alloc::format!("{}", escaped("hello world")), "hello world");
+    assert_eq!(alloc::format!("{}", escaped("hi\x1b[31m!")), r"hi\x1b[31m!");
+
+    // Multi-byte UTF-8 is escaped byte-by-byte, matching `.as_bytes()`.
+    assert_eq!(alloc::format!("{}", escaped("caf\u{00e9}")), r"caf\xc3\xa9");
+
+    // Also works with `&[u8]`, `&Vec<u8>`, `&String`.
+    assert_eq!(
+        alloc::format!("{}", escaped(b"hello\x1eworld")),
+        r"hello\x1eworld",
+    );
+    let v: alloc::vec::Vec<u8> = alloc::vec![0x68, 0x69, 0x1e];
+    assert_eq!(alloc::format!("{}", escaped(&v)), r"hi\x1e");
+    let s = alloc::string::String::from("hi\x1b[0m");
+    assert_eq!(alloc::format!("{}", escaped(&s)), r"hi\x1b[0m");
 }

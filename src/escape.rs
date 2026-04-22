@@ -25,6 +25,29 @@ where
     escaped
 }
 
+/// Returns the [`Escape`] iterator for the given input, for use in `format!`,
+/// `write!`, or any other [`Iterator`] or [`core::fmt::Display`] context.
+///
+/// Accepts any type that references a byte slice, including `&[u8]`, `&str`,
+/// `&Vec<u8>`, and `&String`, so callers do not need to write `.as_bytes()`
+/// for string inputs.
+///
+/// For raw byte iterators (slice iterators, iterator chains, etc.) use
+/// [`Escape::new`] directly.
+///
+/// ## Example
+///
+/// ```rust
+/// let s = format!("Message: {}", escape_bytes::escaped("hi\x1b[31m!"));
+/// assert_eq!(s, r"Message: hi\x1b[31m!");
+/// ```
+pub fn escaped<T>(t: &T) -> Escape<&[u8]>
+where
+    T: AsRef<[u8]> + ?Sized,
+{
+    Escape::new(t.as_ref())
+}
+
 /// Escape into error occurs when escaping into a slice cannot continue.
 #[derive(Debug, PartialEq, Eq)]
 pub enum EscapeIntoError {
@@ -194,5 +217,33 @@ where
     fn size_hint(&self) -> (usize, Option<usize>) {
         let input_hint = self.input.size_hint();
         (input_hint.0, input_hint.1.and_then(escaped_max_len))
+    }
+}
+
+/// Formats the escaped bytes, allowing use in `format!` and `write!` without
+/// allocating an intermediate buffer.
+///
+/// Requires the input iterator to be [`Clone`] so formatting does not consume
+/// it.
+///
+/// ## Example
+///
+/// ```rust
+/// use escape_bytes::Escape;
+/// let s = format!("{}", Escape::new(b"hello\x1eworld"));
+/// assert_eq!(s, r"hello\x1eworld");
+/// ```
+impl<I> core::fmt::Display for Escape<I>
+where
+    I: IntoIterator,
+    I::IntoIter: Clone,
+    I::Item: Borrow<u8>,
+{
+    fn fmt(&self, f: &mut core::fmt::Formatter<'_>) -> core::fmt::Result {
+        use core::fmt::Write;
+        for b in self.clone() {
+            f.write_char(b as char)?;
+        }
+        Ok(())
     }
 }
