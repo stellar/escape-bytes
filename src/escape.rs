@@ -12,7 +12,7 @@ use core::borrow::Borrow;
 /// assert_eq!(escaped, br"hello\xc3world");
 /// ```
 #[cfg(feature = "alloc")]
-#[cfg_attr(feature = "doc", doc(cfg(feature = "alloc")))]
+#[cfg_attr(doc, doc(cfg(feature = "alloc")))]
 pub fn escape<I>(i: I) -> alloc::vec::Vec<u8>
 where
     I: IntoIterator,
@@ -132,9 +132,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         match self.next {
             Next::Input => {
-                let Some(b) = self.input.next() else {
-                    return None;
-                };
+                let b = self.input.next()?;
                 let b = *b.borrow();
                 match b {
                     // Backslash is rendered as double backslash.
