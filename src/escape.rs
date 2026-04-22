@@ -155,9 +155,7 @@ where
     fn next(&mut self) -> Option<Self::Item> {
         match self.next {
             Next::Input => {
-                let Some(b) = self.input.next() else {
-                    return None;
-                };
+                let b = self.input.next()?;
                 let b = *b.borrow();
                 match b {
                     // Backslash is rendered as double backslash.
