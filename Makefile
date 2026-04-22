@@ -17,7 +17,7 @@ build:
 
 doc:
 	cargo hack test --doc --all-features
-	RUSTDOCFLAGS="--cfg doc" cargo +nightly doc --all-features --open
+	RUSTDOCFLAGS="--cfg docsrs" cargo +nightly doc --all-features --open
 
 readme:
 	cargo readme > README.md
