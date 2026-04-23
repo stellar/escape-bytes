@@ -19,7 +19,7 @@ use core::borrow::Borrow;
 /// # }
 /// ```
 #[cfg(feature = "alloc")]
-#[cfg_attr(feature = "doc", doc(cfg(feature = "alloc")))]
+#[cfg_attr(feature = "docs", doc(cfg(feature = "alloc")))]
 pub fn unescape<I>(i: I) -> Result<alloc::vec::Vec<u8>, UnescapeError>
 where
     I: IntoIterator,

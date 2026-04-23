@@ -12,7 +12,7 @@ use core::borrow::Borrow;
 /// assert_eq!(escaped, br"hello\xc3world");
 /// ```
 #[cfg(feature = "alloc")]
-#[cfg_attr(feature = "doc", doc(cfg(feature = "alloc")))]
+#[cfg_attr(feature = "docs", doc(cfg(feature = "alloc")))]
 pub fn escape<I>(i: I) -> alloc::vec::Vec<u8>
 where
     I: IntoIterator,

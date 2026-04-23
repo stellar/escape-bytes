@@ -36,6 +36,7 @@
 
 #![no_std]
 #![allow(clippy::module_name_repetitions)]
+#![cfg_attr(feature = "docs", feature(doc_cfg))]
 
 #[cfg(feature = "alloc")]
 extern crate alloc;
